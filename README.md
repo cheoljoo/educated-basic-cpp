@@ -737,3 +737,577 @@ goo(NULL);  // ok
 - C++ : void* -> 암시적 형변환 안됨.
 - 일반적으로 NULL은 일반 정수 리터럴 0 으로 해석
 
+
+
+
+# 12. 객체 지향 프로그래밍의 개념
+## 객체지향 프로그래밍의 개념
+- in / out parameter
+1. 현실 세계에 존재하는 것들
+1. 새로운 data type을 만들자.
+
+
+# 13. 접근 지정자 , 생성자 , 소멸자 
+## 접근 지정자 (Access Specifiers)
+- 멤버 데이터를 외부에서 직접 접근하면 객체가 잘못된 상태를 가지게 될수 있다.
+- private에 넣어서 외부에서 접근할수 없게 하는대신 , 변경하는 함수를 제공하자.
+- friend 함수 개념
+    - friend 함수
+        - 멤버 함수는 아니지만 private 멤버에 접근  할수 있게 하고 싶을때
+    - 왜 멤버 함수로 만들지 않는가?
+        - 멤버 함수로 만들수 없는 경우 
+        - 연산자 재정의 참고
+    - 왜 getter/setter를 사용하지 않는가?
+        - getter/setter를 제공하면 모든 함수에서 접근 할수 있다.
+        - 모든 함수가 아닌 "특정 함수에서만 접근" 할수 있게 하고 싶을때
+
+## 생성자 #1
+- 디폴트 생성자
+    - 사용자가 새성자를 한개도 만들지 않으면 "컴파일러가 인자 없는 생성자를 제공"해 준다.
+- 객체 생성하는 다양한 방법
+    1. () 또는 {} 으로 생성자 인자 전달
+    1. 직접 초기화( () , {} ) 또는 복사 초기화 (=)
+    1. 배열 생성 : 배열의 개수 만큼 생성자가 호출된다. 
+        - pointer만 Point* p11; 과 같이 만들면 생성자 호출은 안됨.
+    1. malloc과 new의 차이 : malloc : 메모리만 할당하고 생성자 호출하지 않음.  new : 메모리 할당하고 생성자 호출
+- 생성자/소멸자 호출 순서
+    - 객체가 생성
+        - 멤버의 생성자가 먼저 호출되고 자신의 생성자 호출
+    - 객체 파괴
+        - 자신의 소멸자가 먼저 호출되고 , 멤버의 소멸자 호출
+
+## 생성자 #2 : 위임 생성자 (delegate constructor)
+```cpp
+class Point
+{
+    Point() : Point(0..0)
+    {
+    //
+    }
+    Point(int a, int b)
+    {
+    }
+};
+```
+
+- default constructor
+    - 뭔가 생성자가 있으면 default 생성자 만들지 않음.
+    - Point() = default;  // default 생성자 제공해 달라는 표시
+        - 클래스 선언부에만 표기하면 구현부는 만들지 않아도 된다.
+```cpp
+class Point
+{
+    Point() = default;  // default 생성자 제공해 달라는 표시
+    Point(int a , int b){}
+};
+```
+
+- 생성자를 삭제하는 경우는 거의 없고, 복사 생성자를 삭제하는 경우는 많이 있다. 
+    - Point() = delete;
+
+
+## 소멸자 
+- 소멸자는 오직 1개 (인자를 가질수 없다.)
+- 소멸자를 만들지 않으면 , 컴파일러가 소멸자를 제공해준다.
+- 자원 할당과 자원 해지가 필요한 코드
+    - RAII (Resource Acquisition is Initialization)
+
+# 14. 초기화 리스트
+## 초기화 리스트
+- Point(int a , int b) : x(a) , y(b) {}  <= member initializer lists
+    - 대입이 아닌 초기화
+        - int a = 0; // 초기화 . 생성자 호출
+        - int b;    // 생성자 호출
+        - b = 0;    // 대입. 대입연산자 호출
+- **상수멤버 , 참조멤버, 디폴트 생성자가 없는 객체를 멤버로 가질때는 초기화 리스트로 초기화를 해야 한다.**
+- 반드시 멤버 초기화 리스트를 사용해야 하는 경우
+    - const or reference로 되어있을때 
+```cpp
+class Point
+{
+    int x,y;
+    const int cval;
+    
+    Point(int a,int b , int c) : x(a) , y(b) , cval(c){}
+}
+```
+    - default 생성자가 없을때
+```cpp
+class Point
+{
+    int x,y;
+
+    Point(int a,int b) : x(a) , y(b){}
+};
+class Rect
+{
+    Point p1;
+    Point p2;
+    
+    Rect(int a, int b, int c, int d) : p1(a,b) , p2(c,d)
+    {
+        // p1(a,b); 와 같이 하면 위에서 default 생성자가 없어서 에러가 발생한다.  꼭 초기화 리스트를 사용해야 한다. 
+    }
+};
+```
+    - 결론 : 모든 member를 초기화 할때는 가능한 초기화 리스트를 사용해라.
+
+- 주의 사항
+    - Point() : y(0) , x(y) 로 했다고 모두 0이 아니다. 
+        - 먼저 만들어진 것이 먼저 초기화된다. 
+- 멤버 데이터를 초기화하는 3가지 방법
+    1. member field initialization :  생성자로 전달된 값을 사용할수 없다.
+    1. member initializer list 
+        - 가장 널리 사용되는 방법
+        - 대입이 아닌 초기화
+        - 위임 생성자도 가능하다.
+    1. 생성자 블록 안에서 초기화
+        - 초기화가 아닌 대입
+    1. 클래스를 선언과 구현으로 분리하는 경우 : 초기화 리스트는 구현부에 작성한다. 
+
+## explicit 
+```cpp
+class OFile {
+    explicit OFile(const char* filename){
+        
+    }
+};
+
+OFile f1("a.txt"); // ok
+OFile f2 = "a.txt"; // error
+foo(f1);
+foo("hello");  // error
+```
+- 객체를 초기화하는 방법
+    - 직접 초기화 (direct initialization)  : = 없이 초기화   Object o(value);
+    - 복사 초기화 (copy initialization) : = 사용해서 초기화하는 것
+- 생성자가 explicit인 경우
+    - 복사 초기화를 사용할수 없다. 
+    
+```cpp
+class Point
+{
+    int x,y;
+
+    Point(int a=0,int b=0) : x(a) , y(b){}
+};
+void foo(Point p){}
+
+Point p1(1,2); // 초기화
+Point p2{1,2};
+Point p3 = {1,2};
+Point p4 = 1;
+
+p1 = {1,2}; // 대입
+p1 = 10; // 10으로 객체를 맞을지를 본다. p1(10,0)을 만들어 대입한다. 
+        // int => Point로 변환  되는 것으로 보인다.
+```
+- 변환 생성자 : 생성자가 explicit가 아닌 경우
+    - 초기화뿐 아니라 대입이 용도로도 사용된다.
+
+```cpp
+class Point
+{
+    int x,y;
+
+    explicit Point(int a=0,int b=0) : x(a) , y(b){}
+};
+void foo(Point p){}
+
+Point p1(1,2); // 초기화
+Point p2{1,2};
+Point p3 = {1,2};  // error
+Point p4 = 1;   // error
+
+p1 = {1,2}; // 대입  error
+p1 = 10; // error 
+        // int => Point로 변환  되는 것으로 보인다. error
+        
+foo(p1);  // ok
+foo({1,2}); // error
+foo(1);  // error
+```
+
+```cpp
+// shared_ptr : C++표준 스마트 포인터
+std::shared_ptr<int> p1(new int);  // ok
+std::shared_ptr<int> p2 = new int;  // error
+
+Stack s(10);
+Stack s = 10;
+
+foo(10); // 이것이 안되게 하려면 explicit로 만들어야 한다. 
+
+string s1 = "aaa"; // 이것이 안되면 불편하므로 , string은 explicit로 만들면 안된다.
+
+void foo(Stack s){}
+```
+- shared_ptr의 생성자가 explicit일 것이다. 
+
+
+# 15. 복사 생성자
+## copy constructor
+```cpp
+class Point
+{
+    int x,y;
+    Point() : x(0),y(0) {}
+    Point(int a, int b):x(a),y(b) {}
+};
+
+Point p1; //ok
+Point p2(1,2); // ok
+Point p3(1); // Point (int) - error
+Point p4(p2);  // Point (point) - ok.
+```
+1. 복사 생성자란 ? 자신과 동일한 타입 한개를 인자로 가지는 생성자
+1. 사용자가 복사 생성자를 만들지 않으면
+    - 컴파일러가 제공
+    - 디폴트 복사 생성자
+    - 모든 멤버를 복사 (bitwise copy)한다. 
+    - Point(const Point&* p) : x(p.x) , y(p.y){}
+
+```cpp
+Point p1(1,2); // 생성자
+Point p2(p1);  // 복사 생성자
+Point p3{p1};  // 직접 초기화
+Point p4 = {p1}; // 복사 초기화
+Point p5 = p1;   // 복사 초기화
+```
+- 복사 생성자가 호출되는 3가지 경우
+    1. **자신과 동일한 타입의 객체로 초기화 될때**
+        - Point p2(p1);
+        - Point p2{p1};
+        - Point p2 = p1;  => explicit가 아닌 경우 
+    1. **함수 인자를 call by value  : Point pt = p1**
+        - 함수 인자를 const reference로 사용하면 복사본을 만들지 않으므로 복사 생성자가 호출되지 않는다.
+    1. 리턴 할때 
+        - 참조 return을 사용하면 Point& foo() 복사 생성자 호출되지 않는다.
+        - 단 , 지역 변수는 참조로 반환하면 안된다.
+
+## 디폴트 복사 생성자의 문제점
+```cpp
+class Point
+{
+    int x,y;
+    Point(int a, int b):x(a),y(b) {}
+};
+
+Point p2(1,2); // ok
+Point p4(p2);  // Point (point) - ok.
+```
+1. 객체가 자신의 동일한 타입의 객체로 초기화 할때
+    - 복사 생성자가 사용
+    - 사용자가 만들지 않는 경우 "디폴트 복사 생성자가 사용" 된다.
+    - 디폴트 복사 생성자는 "모든 멤버를 복사"해 준다.
+1. 디폴트 복사 생성자가 모든 멤버를 복사 해주는 것은 편리한 경우도 있지만, 문제가 되는 경우도 있다. 
+
+- 문제가 되는 경우
+```cpp
+class Person
+{
+    char* name;
+    int age;
+    Person(const char* n , int a) : age(a)
+    {
+        name = new char[strlen(n) +1];
+        strcpy(name , n);
+    }
+    ~Person() { delete[] name; }
+};
+
+Person p1("kim",20);
+Person p2 = p1; // 실행시 오류 발생  : name을 복사시 pointer값만 복사해준다.
+```
+    - 소멸자가 2번 call 되어진다.  name이 2번 해제되어 문제가 됨.
+    1. 얕은 복사 (shallow copy)
+        - 클래스 안에 포인터 멤버가 있을때 디폴트 복사 생성자가 주소만 복사
+        - 개발자가 직접 복사 생성자를 만들어야 한다.
+
+## 객체의 복사 방법 #1
+1. 얕은 복사 (shallow copy)
+    - 클래스 안에 포인터 멤버가 있을때 디폴트 복사 생성자가 주소만 복사
+1. 깊은 복사 (deep copy) : 포인터를 자원을 만들어 복사
+    - 단점 : 객체를 여러번 복사하면 동일한 자원이 메모리에 여러번 놓이게 된다. 
+```cpp
+// 깊은 복사 생성자
+Person(const Person& p) : age(p.age)
+{
+    // age = p.age;
+    name  = new char(strlen(p.name)+1]);
+    strcpy(name,p.name);
+}
+```
+1. 깊은 복사의 단점 해결책
+    - 처음에는 같이 자원을 공유하며 갯수를 관리 (Pointer에 reference count를 접근)
+
+- 참조 계수 (reference counting)
+    - 여러 객체가 하나의 자원을 공유하게 한다.
+```cpp
+class Person
+{
+    char* name;
+    int age;
+    int* ref;
+    Person(const char* n , int a) : age(a)
+    {
+        name = new char[strlen(n) +1];
+        strcpy(name , n);
+        ref = new int;
+        *ref = 1;
+    }
+    ~Person() 
+    { 
+        // 참조 계수 기반인 경우 소멸자
+        if( --(*ref) == 0){
+            delete[] name; 
+            delete ref;
+        }
+        
+    }
+
+
+    // 복사 생성자  : 참조 계수 사용법
+    Person(const Person& p) : age(p.age) , name(p.name),ref(p.ref)
+    {
+        ++(*ref);
+    }
+};
+```
+- 참조 계수에서 좀 더 생각해야 할 점
+    - p1이 자신의 이름이 바뀌기를 원한다.  공유했던 자원을 분리
+    - 멀티 쓰레드 환경에서는 동기화 오버헤드가 발생
+
+## 객체 복사 #2
+1. 복사 금지
+- 컴파일 에러가 나오게 하자. 
+    - Person(const Person&) = delete;
+    - Person p2 = p1; // error
+- 문자열이 필요하면 STL의 std::string 클래스를 사용하자.
+
+## 객체 복사 총정리
+- shallow copy
+- deep copy
+- reference couting
+- delete : 복사 안되게 하자
+- std::string을 사용
+- c++11의 move 사용 (&&)
+- 복사 생성자를 만드는 경우 보통은 대입 연산자도 같이 만들어야 합니다.
+
+
+# 16. static member data
+- 객체의 생성과 소멸
+- 객체가 몇개 생성되었는지 개수를 알고 싶다. 
+    - 생성자에서 +1
+    - 소멸자에서 -1
+```cpp
+class Car
+{
+    int speed;
+    int color;
+    static int cnt;   // declaration
+public:
+    Car(){ ++cnt; }
+    ~Car() { --cnt; }
+};
+int Car::cnt = 0;    // definition  : 보통 정의부는 cpp file에 넣는다.
+
+Car c1,c2,c3;
+cout << c1.cnt << endl;
+```
+- 전역변수를 사용하거나, static을 사용하자. 
+- static 일때 calss외부에 초기화하는 부분을 만들어주어야 한다. 
+    - int Car::cnt = 0;    // definition  : 보통 정의부는 cpp file에 넣는다.
+- 정적 멤버 데이터는 객체가 없어도 메모리에 놓인다. 
+    - 클래스 이름으로 접근 가능
+    - sizeof(c1)을 하면 cnt size는 포함되지 않는다.
+
+- 정적  멤버 데이터에 접근하는 방법
+    - 객체 이름으로 접근 가능  -> c1.speed , Car::speed
+    - 되도록이면 클래스 이름을 사용해서 접근하는 것이 좋다. : Car::speed
+    
+## 정적 멤버 테이터 초기화
+```cpp
+class Car
+{
+    int speed;
+    int color;
+    static int sdata1 = 0;   // error : 반드시 외부에서 초기화
+    static const int sdata2 = 0; // ok : 밖에 만들 필요가 없다.
+    static const double sdata3 = 0; // error
+    static constexpr int sdata4 = 0; // ok
+    static constexpr double sdata5 = 0; // ok
+    inline static int sdata6 = 0; // 정의 (definition) C++17
+public:
+    Car(){ ++cnt; }
+    ~Car() { --cnt; }
+};
+```
+
+## 정적 멤버 함수
+- 객체가 없어도 함수를 부르고 싶은 경우
+    -  static int getCount(){ return cnt; }
+- 호출 방법
+    - Car::getCount();  // good!
+    - c1.getCount();
+
+- 정적 멤버 함수의 특징
+    - 객체 없이 호출 가능한 멤버 함수
+    - 일반 멤버 (데이터,함수)에 접근할수 없다.
+    - 정적 멤버 (데이터,함수)에 접근할수 있다. 
+
+
+
+# 17. const member function
+## const member funciton #1
+1. const member function
+    - 함수 괄호 뒤에 const가 붙는 함수
+    - void print() const
+1. 상수 멤버 함수의 특징
+    - 모든 멤버를 상수 취급
+    - 함수 안에서 멤버 데이터의 값을 읽을수는 있지만 변경할수는 없다. 
+1. 상수 멤버 함수를 사용하는 이유
+    - 코드의 안정성
+    - **상수 객체는 상수 멤버 함수만 호출할수 있다.**
+
+- 상수 멤버 함수가 필요한 이유
+```cpp
+class Point
+{
+    int x,y;
+    Point(int a, int b):x(a),y(b) {}
+    void set(int a, int b){ x=a ; y=b; }
+    void print();
+};
+
+void Point::print()
+{ 
+    cout << x << y << endl; 
+}
+
+
+const Point p2(1,2);  // 상수 객체
+p2.x = 10;  // error
+p2.set(10,10);  // error
+p2.print();  // error    
+```
+- compiler가 함수의 선언부만을 보고 , 값이 바뀔지 안 바뀔지 알수 없다.   그래서 , const p2 에 대한 p2.print()는 에러
+- 단 , print가 상수 함수라면 OK    void print() const;    
+    - **선언 / 구현 모두에 const를 붙여주어야 한다.**
+- 상수 객체는 상수 멤버 함수만 호출할 수 있다.
+    - const를 붙이는 문법은 선택이 아닌 필수!!!  상수 객체를 많이 사용하기 때문이다.
+    - ex. const call by reference 사용   :    void foo(const Rect& r)  로 전달 받음
+        - r이 상수 참조 이므로, r이 상수 객체가 된다. r.getArea() 같은 멤버 함수는 에러가 되므로 getArea도 상수 함수여야 한다.
+- **멤버 함수를 만들때 , 안 바뀌는 함수들은 const member function으로 만들어라!!!**
+    - 객체의 상태를 변경하지 않는 모든 멤버 함수는 반드시 상수 멤버 함수로 만들어야 한다.
+
+## 상수 멤버 함수 문법 정리
+- print함수를 호출하는 횟수 측정
+    - void print() const 이므로 내부에서 ++cnt; 가 있으면 안된다. 
+- mutable int cnt = 0;  으로 선언하면 된다. 
+    - 상수 멤버 함수 안에서 뭔가 바꾸고 싶은 것들을 mutable로 선언
+- 동일 이름이 상수 멤버 함수와 비 상수 멤버 함수를 만들수 있다. 
+    - void foo(){} 먼저 , void foo() const {}는 다음에 
+- 상수 멤버 함수 안에서는 모든 멤버는 const 이다.
+    - int * getData() const 일때는 const int * getData() const 여야 한다. 
+- 선언과 구현 모두 const를 표기해야 한다.
+
+### this pointer
+```cpp
+class Point
+{
+    int x=0,y=0;
+    void set(int a, int b)
+    {
+        x =a;
+        y=b;
+    }
+};
+
+```
+- 객체를 여러개 생성할때 
+    - 멤버 데이터는 객체당 한 개씩 메모리에 놓이게 된다.
+    - 멤버 함수는 객체의 개수에 상관없이 코드 메모리에 한개 만 있다. 
+    - void set(Point* this , int a , int b)
+
+1. this
+    - keyward
+    - 자신을 호출한 객체의 주소
+
+- this pointer의 활용
+```cpp
+class Point
+{
+    int x=0,y=0;
+    Point* set(int x, int y)
+    {
+        this->x = x;
+        this->y = y;
+        
+        return this;
+    }
+};
+
+p1.set(10,20)->set(30,40)->set(40,50);
+
+```
+- this를 반환하는 함수
+    - 멤버 함수를 연속적으로 호출 할수 있다. ex. cout
+- 주의 : 참조 반환
+    - *this를 반환할때는 임시 객체의 생성을 막기 위해 "참조를 반환"해야 한다.
+
+- this 주의 사항
+    - **static member function 안에서는 this를 사용할수 없다.**
+
+
+
+
+# 18. 상속의 개념
+## inheritance 기본
+- base class : 기반 클래스
+- derived class :  파생 클래스 
+
+## 상속과 접근 지정자 (access specifiers)
+- 새로운 접근 지정자 : protected - 파생클래스에서 접근 가능
+
+## 상속에서의 생성자/ 소멸자 호출 순서
+- Base() -> Drived() -> ~Drived() -> ~Base()
+- 생성자 인자가 있을때
+    - 기반 클래스는 항상 default 생성자 호출
+    - default 생성자로 안 가려면    Drived(int a) : Base(a)
+- protected 생성자
+    - 자기 자신은 객체를 만들수 없지만, (추상적 존재)   Animal 
+    - 파생 클래스의 객체는 만들수 있게 하는 의미   Dog:public Animal
+```cpp
+class Animal
+{
+    protected:
+    Animal(){}
+};
+class Dog : public Animal
+{
+};
+```
+
+- 주의 사항
+    - 기반 클래스의 default 생성자가 없다면 "반드시 기반 클래스의 생성자를 명시적으로 호출" 해야 한다.
+    - h / cpp를 만들었다면 , 실제 초기화 list를 cpp(구현부)에 넣는다. 
+
+
+# 19. 가상함수 #1
+## upcasting
+- up casting
+    - 기반 클래스 타입의 포인터로 파생 클래스를 가리킬수 있다.
+    - 기반 클래스 참조로 파생 클래스를 가리킬수 있다.
+- 기반 클래스 타입의 포인터로 파생 클래스를 가리킬때
+    - 기반 클래스의 멤버는 접근 할수 있지만,
+    - 파생 클래스가 추가한 멤버는 접근 할수 없다.
+    - 파생 클래스가 추가한 멤버에 접근하려면 포인터를 파생 클래스로 변환해서 사용한다.  reinterpret_cast (다른 타입의 포인터로 변환)
+- upcasting 활용
+    - polymorphisom 다형성
+    - 동종을 처리하는 함수를 만들수 있다. 
+    - 동종 (동일한 기반 클래스를 사용하는 클래스)을 보관하는 컨테이너를 만들수 있다. 
+
+## virtual function
+### function override
+### virtual function 개념
