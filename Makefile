@@ -1,5 +1,5 @@
-11:
-	g++ --std=c++11 1-1.cpp -o 11
+1: 1.cpp
+	g++ --std=c++11 1.cpp -o 1
 
-12:
-	g++ --std=c++11 1-2.cpp -o 12
+2: 2.cpp
+	g++ --std=c++11 2.cpp -o 2
