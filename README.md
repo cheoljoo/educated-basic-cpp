@@ -1310,4 +1310,900 @@ class Dog : public Animal
 
 ## virtual function
 ### function override
-### virtual function 개념
+- 함수 오버 라이드 
+    - 기반 클래스가 가진 함수를 파생클라스에서 다시 만드는 것
+    - 주의 !!! overloading과 다름
+- 기반 클래스 포인터로 파생 클래스를 가르킬때 override된 함수를 호출하면   (virtual 선언 안 했을때)
+    - C++, C#등의 언어는 기반 클래스 함수 호출
+    - JAVA , Swift는 파생 클래스 함수 호출
+
+### 함수 바인딩과 가상함수
+- 함수 바인딩
+    - static binding
+    - dynamic binding
+
+```cpp
+Shape* p = &r;
+if(n = 1) p = &s;
+// 아래 코드를 컴파일할때 
+// p가 어느 객체를 가르킬지 컴파일러가 알수 있을까?
+p->Draw();
+```
+- C++은 기본적으로 컴파일할때 함수 호출을 결정한다.
+    - 컴파일러는 "컴파일 시간에 실제로 p가 어느 객체를 가리킬지 알수 없다."
+    - 알고 있는 정보는 p가 Shape* 라는 사실 밖에 없다.
+- 가상함수 (virtual function)
+    - 실행할때 결정해 달라.
+    - 메모리에 있는 객체type을 조사 후 수행
+- 다형성 (polymorphism)
+    - 동일한 코드(함수 호출)이 "상황에 따라 다르게 동작" 하는 것
+- 개방 폐왜의 법칙 ( OCP : open close principle)
+    - 기능 확장 열려있고 (open)
+    - 코드 수정에는 닫혀 있어야 (close , 코드는 수정되면 안된다.)  한다는 이론 (principle)
+    - 다형성은 OCP를 만족하는 좋은 코드 스타일이다.
+- design pattern 기본 개념 : DIP, SRP , LSP , ISP , OCP
+
+
+# 20. 가상함수 #2
+## 가상함수 문법 정리
+- 파생 클래스에서 가상 함수 재정의(override)할때
+    - virtual keyword는 붙여도 안 붙여도 된다. 가능하면 붙여라.
+    - override C++11
+        - 실수를 방지하기 위해 override를 붙이는 것이 좋다.
+    - final을 붙이면 , 그 다음부터는 override를 할수 없다. 
+    - 선언과 구현으로 분리 할때
+        - virtual , override , final 모두 선언부에만 표기
+        - 구현부에 표기하면 error
+            - const는 양쪽에 모두 있어야 한다.
+```cpp
+class Drived : public Base
+{
+public:
+    virtual void ff1() override {}
+    virtual void f4() final {}
+};
+class Derived : public Drived
+{
+    virtual void f4() {}
+};
+```
+
+## 가상 소멸자
+- 기반 클래스의 소멸자는 virtual로 만들어야 한다. 
+    - 파생 클래스의 소멸자는 자동으로 virtual로 된다.
+
+## 가상 함수 호출 원리
+- ![](virtual_func.png)
+- 오버헤드 : ![](virtual_func_overhead.png)
+    - 메모리 사용량
+    - 성능
+
+
+# 21. 추상 클래스 (abstract class)
+## abstract class
+- 순수 가상 함수 (pure virtual function)
+    - 함수의 구현부가 없고 , 선언부가 =0 으로 끝나는 가상 함수
+- 추상 클래스 
+    - 순수 가상 함수가 한개 이상 있는 클래스
+- 추상 클래스 특징
+    - 객체를 생성할수 없다.
+    - 포인터 변수는 만들수 있다.
+- 추상 클래스로부터 파생된 클래스
+    - 기반 클래스의 순수 가상함수의 구현부를 제공하지 않으면 역시 추상 클래스이다.
+- 추상 클래스의 설계 의도
+    - 파생 클래스에게 특정 멤버 함수를 반드시 만들어야 한다고 지시하는 것
+
+## 인터페이스
+- 계약에 의한 설계
+    - 사람과 카메라 제작자 사이에 지켜야 하는 규칙을 먼저 설계
+    - 규칙은 추상 클래스를 사용해서 설계 한다.
+- 규칙 
+    - 모든 카메라는 ICamera로 부터 파생되어야 한다.
+- 카메라 사용자
+    - 규칙대로만 사용하면 된다.
+- 모든 카메라 제작자
+    - 반드시 규칙을 지켜야 한다.
+- 설계 : ![](interface.png)
+
+
+
+# 22. RTTI (Run Time Type Information)
+## RTTI
+```cpp
+#include <typeinfo>
+int main()
+{
+    int n1 = 10;
+    auto n2 = n1;  // n2의 타입은 int?
+    const std::type_info& t1 = typeid(n2);
+    cout << t1.name() << endl;
+}
+```
+- typeid
+    - 타입에[ 대한 정보를 얻을때 사용하는 연산자
+    - 다양한 형태로 사용할수 있다.
+        - typeid(n1)
+        - typeid(int)
+        - typeid(3+4.2)
+    - typeid 연산자의 결과로 const std::type_info& 가 반환된다.
+        - const std::type_info& t = typeid(3+4.2);
+- std::type_info
+    - 타입의 정보를 담고 있는 클래스
+    - 사용자가 직접 객체를 만들수 없고 , typeid()연산자를 통해서만 얻을 수 있다. (객체로는 못 얻고 , &로만 받을수 있다.)
+    - 멤버 함수인 name을 통해서 타입의 이름을 얻을수 있다.
+- 타입을 출력하는 것이 아니라 "조사"하고 싶다면
+    - 2개의 type_info 객체를 == 연산자로 비교
+- 변수 n이 int 타입인지 조사하는 일반적인 코드
+    - if(typeid(n) == typeid(int))
+
+## dynamic_cast
+### 상속과 RTTI
+- 함수가 인자로 기반 클래스의 포인터를 받으면
+    - 기반 클래스 뿐만 아니라 모든 파생클래스를 전달 받을수 있다.
+- 기반 클래스 포인터로 파생 클래스의 고유 멤버에 접근할수 없다.
+    - 파생클래스의 고유 멤버에 접근하려면 파생 클래스 타입으로 캐스팅해야 한다.
+- typeid
+    - 가상 함수가 없는 객체 : 컴파일 시간에 포인터 타입으로 조사
+    - 가상 함수가 있는 객체 : 실행시간 타입 조사 (가상함수 테이블 등을 사용)
+- 가상함수가 꼭 1개 이상은 있어야 하고 , 보통 기반 클래스의 destructor를 virtual로 만들어야 한다.
+- 파생클래스로 변경할때는 static_cast 가능하다.
+- upcasting vs downcasting
+    - upcasting : 파생 클래스 포인터를 기반 클래스 타입으로 캐스팅 (항상 안전하다.)
+    - downcasting : 기반 클래스 포인터를 파생 클래스 타입으로 캐스팅하는 것 - **안전하지 않을 수도 있다.**
+- downcasting 과 캐스팅 연산자
+    - static_cast : 잘못된 downcasting을 조사 할수 없다. 단 , 컴파일 시간에 캐스팅을 수행하므로 오버헤드가 없다.
+    - dynamic_cast : **잘못된 downcasting을 하면 0을 반환** 한다.  실행 시간에 캐스팅을 수행하므로 약간의 오버헤드가 있다.
+        - non polymorphic일때는 dynamic_cast 사용할수 없다. (virtual function 1개 이상 포함)
+```cpp
+Dog* pDog = dynamic_cast<Dog*>(p);
+if(pDog != 0)
+{
+    pDog->color = 1;
+}
+```
+
+# 23. 다중상속
+## multiple inheritance
+- Diamond 상속
+    - 그림 : ![](multiple_inheritance.png)
+- virtual 상속을 사용하면 File의 인스턴스가 메모리에 한번만 생성되게 된다.
+    - ![](virtual_inheritance.png)
+```cpp
+class InputFile : virtual public File {};
+class OutputFile : virtual public File {};
+class IOFile : public InputFile , public OutputFile{} ;
+```
+
+
+
+
+# 24. Operator Overloading (연산자 재정의)
+## 연산자 재정의 개념
+- + , - , * 등의 연산자도 함수로 만들 수 있다. 
+    - operator+ , operator- , operator*
+- a+b를 컴파일러가 해석하는 방법
+    - primitive type인 경우 일반적인 덧셈을 수행한다.
+    - a,b중 한개라도 사용자 정의 타입이면
+        - operator+ 함수를 찾음
+        - 방법 1 : 멤버 함수 검색
+            - a.operator+(b)
+        - 방법 2 : 멤버가 아닌 일반 함수 검색
+            - operator+(a,b)
+- operator+ 함수를 구현하는 2가지 방법
+    - + 는 이항 연산자
+    - 타입의 크기가 큰 경우 call by value보다는 "const 참조" 가 좋다.
+    - friend 함수로 만든다.
+```cpp
+class Point 
+{
+    friend Point operator+(const Point& p1,const Point& p2); // member 변수 접근할수 있게 하기 위해서 
+}; 
+
+Point operator+(const Point& p1,const Point& p2)
+{
+    Point temp;
+    temp.x = p1.x + p2.x;  // private member에 접근한다고 에러가 나온다. 
+    temp.y = p1.y + p2.y;
+    return temp;
+}
+```
+
+- 멤버 함수로 구현하는 operator+
+    - 인자가 1개 여야 한다.
+```cpp
+class Point 
+{
+    // p1.operator+(p2)
+    Point operator+(const Point& p)
+    {
+        Point temp;
+        temp.x = this->x + p.x;  // private member에 접근한다고 에러가 나온다. 
+        temp.y = y + p.y;
+        return temp;
+    }
+};
+```
+
+- 멤버와 일반함수 2개를 모두 만들어주었다면
+    - 멤버 함수가 우선
+    - ```p1 +1```
+        - 1. p1.operator+(int)
+        - 2. operator+(Point,int)
+    - ```1+p1```
+        - 1. 1.operator+(Point)   : 만들수 없다.
+        - 2. operator+(int,Point)  : 만들수 있다. 
+- a+b 
+    - a가 user type이면 : 멤버 함수 , 멤버 아닌 일반 함수 모두 사용가능
+    - **a가 user type이 아니면 : 멤버가 아닌 일반 함수로만 만들수 있다.**
+- operator+ 함수를 호출하는 방법
+
+
+## 연산자 재정의 문법 주의사항
+- 인자가 모두 primitive 타입인 경우는 오버로딩 할수 없다.
+- 다음 연산자는 오버로딩 할수 없다.
+    - ```. * :: ?: sizeof typeid static_cast dynamic_cast rinterpret_cast const_cast```
+    - ```.``` : C++20 부터 오버로딩 가능
+- 멤버 함수로만 오버로딩 가능한 연산자 
+    - ``` = () [] -> ```
+
+
+# 25. cout 과 ostream
+## cout의 원리
+- cout은 ostream타입이 객체 이다.
+    - cout << 3;   // cout.operator<<(3) => operator<<(int)
+    - cout.operator<<(3);    // 직접 부르는 방법
+- ostream& operator<<(int n){ return *this; }
+- 여러개를 연속적으로 출력
+    - operator<< 함수에서 "자기 자신을 참조로 리턴"
+- ostream과 cout은 std 이름 공간안에 있다.
+
+## ostream 과 C++ 표준
+- uni-code 출력 : wostream wcout;
+    - wcout << L"hello";    // 유니코드 고려
+- basic_ostream<> 클래스 템플릿
+
+
+
+## ostream & user define type
+- cout의 특징
+    - cout.operator<<(int)  <<(double)등 모든 버젼을 가지고 있다. 
+    - 멤버 함수 먼저 찾고 , 일반 함수를 찾는다.
+- 사용자 정의 타입을 cout으로 출력할수 있게 하려면
+```cpp
+friend operator<<(std::ostream& os, const Point& pt);
+
+operator<<(std::ostream& os, const Point& pt)
+{
+    // os.operator<<(pt.x) :이것을 호출하므로 ,위의 os argument를 const를 붙이면 에러가 발생
+    os << pt.x << "," << pt.y;
+    return os;
+}
+```
+
+
+## endl 원리
+- cout.put('\n);    cout.flush();
+```cpp
+ostream& myendl(ostream& os)
+{
+    os.put('\n');
+    os.flush();
+    return os;
+}
+```
+- cout << endl;  // cout.operator<<(endl);
+    - // cout.operator<<(함수포인터)
+- endl을 함수로 만드는 이유
+    - cout << "A" << tab << "B" << endl;    // tab도 만들어주면 사용할수 있다. 
+    - // cout.operator<<(함수포인터)
+```cpp
+ostream& tab(ostream& os)
+{
+    os << '\t';
+    return os;
+}
+ostream& menu(ostream& os)
+{
+    os << '1. sul';
+    os << '2. tul';
+    return os;
+}
+
+cout << "A" << tab << "B" << endl;
+```
+
+
+
+# 26. 연산자 재정의 활용
+## 증가 연산자 (increment operator)
+- 증가/감소 연산자 재정의가 사용되는 경우
+    - C++ 표준 라이브러리인 STL의 반복자
+- 증가 감사 연산자 재정의 예제를 통해서
+    - 연산자 재정의 문법 뿐 아니라 다양한 내용을 배울수 있다.
+
+- 전위형과 후위형을 구별해야 한다.
+    - 후위형 만들때는 함수 인자로 int 타입을 한개 가지도록 만든다. 
+        - 사용되지 않지만 전위형과 구별하기 위해
+```cpp
+class Point 
+{
+    Point operator++()   // 전위형
+    {
+        ++x , ++y;
+        return *this;
+    }
+    // Point operator++(int){}   : 후위형
+};
+
+++p; // p.operator++()
+p++;  // p.operator++(int)
+
+int n=3;
+++++n;  // 5
+
+++++p; // 을 하면 2번 증가하는 것이 아니다.
+    // ++(++p)
+    // (p.operator++()).operator++()  으로 되므로 객체를 반환하게 됨.
+    // 2번 더하게 하려면 &로 해야 한다. 
+```
+
+```cpp
+class Point 
+{
+    Point& operator++()   // 전위형
+    {
+        ++x , ++y;
+        return *this;
+    }
+    Point operator++(int)  // 후위형 : 이전 것을 저장하고 있다가 반환을 해야 한다. 
+    {
+        Point temp(*this);
+        // ++x;
+        // ++y;
+        ++(*this);  // 전위형을 재사용해서 만들면 정책을 관리하는 곳을 한 곳에 놓는다.
+        
+        return temp;
+    }
+};
+
+++p; // p.operator++()
+p++;  // p.operator++(int)
+
+++++p; // 을 하면 2번 증가한다. 
+```
+- 후위형은 전위형을 사용해서 구현한다.
+    - 정책을 관리하는 코드는 한곳에 있는 것이 좋다.
+- **일반적으로 후위형보다 전위형이 빠르다.**
+- 연속적인 ++을 사용하지 못하게 하기 위해, 상수 객체를 반환하는 경우도 있다. ++++ 이 안됨
+    - const Point operator++(int)
+
+
+## 대입 연산자
+```cpp
+class Point 
+{
+    int x,y;
+    Point(int a , int b): x(a),y(b) {}
+};
+
+Point p1(1,1); // 생성자 호출
+Point p2(2,2); // 생성자 호출
+Point p3(p1);  // 복사 생성자 호출
+Point p4 = p1; // 복사 생성자 호출
+
+p4 = p2;   // p4.operator=(p2)
+
+```
+- 초기화와 대입
+    - 초기화 Point p1(p2) or Point p1= p2;   - 복사 생성자 호출
+    - 대입 p1 = p2;    대입 연산자 호출
+```cpp
+Point(const Point& p) : x(p.x) , y(p.y) { }  // 디폴트 복사 생성자 (컴파일러가 자동생성)
+Point& operator=(const Point& p)    // 디폴트 대입연산자 (컴파일러가 자동생성)
+{
+    x = p.x;
+    y = p.y;
+    return *this;
+}
+```
+
+-대입연산자의 반환값
+    - 자기 자신을 참조로 반환해야 한다. 
+```cpp
+class Point 
+{
+    int x,y;
+    Point(int a , int b): x(a),y(b) {}
+    Point& operator=(const Point& p)
+    {
+        x = p.x;
+        y = p.y;
+        
+        return *this;
+    }
+};
+```
+
+
+## 스마트 포인터 개념
+- 스마트 포인터란?
+    - 객체지만 포인터처럼 동작하는 객체
+```cpp
+class Ptr
+{
+    Car* pObj;
+    Ptr(Car* p = 0) : pObj(p) { }
+    ~Ptr(){ delete pObj; }
+    Car* operator->(){ return pObj; }
+    Car& operator*(){ return *pObj; }
+};
+
+Ptr p = new Car; // Ptr p(new Car)
+p->Go();   // p.operator->()Go()
+        // p.operator->()->Go()   // 1000->Go()
+(*p).Go() // (p.operator*()).Go()
+```
+    - ![](smart_pointer.png)
+
+- C++ 표준 smart pointer
+    - new로 할당한 메모리는 반드시 delete 로 파괴해야 한다.
+- 스마트 포인터는 자동으로 자원을 관리해줌
+- std::shared_ptr<>
+    - C++ 표준 스맡 포인터
+    - <memory> 헤더
+```cpp
+// std::shared_ptr<Car> p1 = new Car; // error : 복사 초기화가 안되게 explicit로 선언됨
+std::shared_ptr<Car> p1(new Car);  // ok
+
+p1->Go();
+```
+    
+## 함수 객체 (function object)
+- 함수 객체
+    - 객체가 함수처럼 사용되는 경우 : ex   p(1,2);
+        - a+b  // a.operator+(b)
+        - a-b  // a.operator-(b)
+        - a(); // a.operator()()
+        - a(1,2);  // a.operator()(1.2)
+        - int operator()(int a , int b) { return a+b; }
+    - 함수 객체의 장점
+        - 상태를 가지는 함수
+        - 특정 상황에서는 일반함수보다 빠르다.
+
+- 상태를 가지는 함수
+    - 함수 객체는 () 연산자 함수 뿐 아니라 "멤버 데이터"를 가질수 있다. 
+    - 생성자/소멸자/멤버 함수 등도 활용 할수 있다. 
+```cpp
+// 0~9 사이의 난수 얻기
+int frand() { 
+    return rand() % 10; 
+}
+
+class URandom
+{
+    char history[10];
+    void reset(){
+        for(int i=0;i<10;i++)
+            history[i] = 0;        
+    }
+    URandom(){
+        for(int i=0;i<10;i++)
+            history[i] = 0;
+        
+        srand(time(0));
+    }
+    int operator()()
+    {
+        int n = -1;
+        do{
+            n = rand() %10;
+        } while(history[n] == 1);
+        history[n] = 1;
+        return n;
+    }
+};
+
+URandom orand;
+// 서로 다른게 나오도록 하기 위해서 함수인데 상태를 저장하고 있어야 한다. 
+cout << orand() << endl;
+cout << orand() << endl;
+cout << orand() << endl;
+
+cout << frand() << endl;
+```
+
+## 함수 객체 (functor)
+```cpp
+template<typename T>
+class Plus
+{
+    T operator()(T a, T b)
+    {
+        return a+b;
+    }
+}
+```
+
+```cpp
+#include <functional>  // plus<> , minus<> , multilies<>
+
+std::plus<double> p;
+cout << p(1,1) << endl;
+```
+- 대부분 템플릿으로 되어있다. 
+
+
+## 함수 객체 (Function Object) 용어의 의미
+1. 용어가 처음 사용될때
+    - () 연산자 함수를 재정의한 클래스 객체
+1. 요즘
+    - () 연산자 함수를 사용해서 함수처럼 호출 가능한 모든 것의 객체
+    - () 연산자를 재정의한 클래스 "함수 포인터" , "멤버 함수 포인터" 등
+1. 호출 가능한 객체 (callable object)
+    - C++ 11이후 부터 함수 객체를 대신해서 새롭게 등장하는 용어
+
+
+
+# 27. String 클래스
+## String 만들기
+```cpp
+class String
+{
+    char* buff;
+    int size;
+    String(const char* s)
+    {
+        size = strlen(s);
+        buff = new char[size+1];
+        strcpy(buff , s);
+    }
+    ~String()
+    {
+        delete[] buff;
+    }
+    firend ostream& operator<<(ostream& os,const String& s);
+};
+
+ostream& operator<<(ostream& os,const String& s)
+{
+    return os << s.buff;
+}
+
+int main()
+{
+    String s1 = "hello";
+    cout << s1 << endl;
+}
+```
+
+```cpp
+// 깊은 복사
+class String
+{
+    char* buff;
+    int size;
+    String(const char* s)
+    {
+        size = strlen(s);
+        buff = new char[size+1];
+        strcpy(buff , s);
+    }
+    // 복사 생성자 : 깊은 복사
+    String(const String& s) : size(s.size)
+    {
+        buff = new char[size+1];
+        strcpy(buff,s.buff);
+    }
+    ~String()
+    {
+        delete[] buff;
+    }
+    firend ostream& operator<<(ostream& os,const String& s);
+};
+
+ostream& operator<<(ostream& os,const String& s)
+{
+    return os << s.buff;
+}
+
+int main()
+{
+    String s1 = "hello";
+    cout << s1 << endl;
+    
+    Stirng s2 = s1;  // 기본 : 얕은 복사
+    cout << s2 << endl;
+}
+```
+
+```cpp
+// 깊은 복사
+class String
+{
+    char* buff;
+    int size;
+    String(const char* s)
+    {
+        size = strlen(s);
+        buff = new char[size+1];
+        strcpy(buff , s);
+    }
+    // 복사 생성자 : 깊은 복사
+    String(const String& s) : size(s.size)
+    {
+        buff = new char[size+1];
+        strcpy(buff,s.buff);
+    }
+    ~String()
+    {
+        delete[] buff;
+    }
+    // 대입 연산자
+    String& operator=(const String& s)
+    {
+        size = s.size;
+        delete[] buff;
+        buff = new char[size+1];
+        strcpy(buff,s.buff);
+        return *this;
+    }
+    firend ostream& operator<<(ostream& os,const String& s);
+};
+
+ostream& operator<<(ostream& os,const String& s)
+{
+    return os << s.buff;
+}
+
+int main()
+{
+    String s1 = "hello";
+    cout << s1 << endl;
+    
+    Stirng s2 = s1;  // 기본 : 얕은 복사
+    cout << s2 << endl;
+    
+    String s3 = "world";
+    cout << s3 << endl;
+    
+    s3 = s1;   // 대입 연산자  s2.operator=(s1)
+    cout << s3 << endl;
+}
+```
+- 그림 : ![](대입연산자.png)
+
+```cpp
+// 깊은 복사
+class String
+{
+    char* buff;
+    int size;
+    String(const char* s)
+    {
+        size = strlen(s);
+        buff = new char[size+1];
+        strcpy(buff , s);
+    }
+    // 복사 생성자 : 깊은 복사
+    String(const String& s) : size(s.size)
+    {
+        buff = new char[size+1];
+        strcpy(buff,s.buff);
+    }
+    ~String()
+    {
+        delete[] buff;
+    }
+    // 대입 연산자
+    String& operator=(const String& s)
+    {
+        // 대입 연산자의 규칙 : 자신과의 대입을 조사해야 한다.
+        if( &s == this) return *this;
+        
+        size = s.size;
+        delete[] buff;
+        buff = new char[size+1];
+        strcpy(buff,s.buff);
+        return *this;
+    }
+    firend ostream& operator<<(ostream& os,const String& s);
+};
+
+ostream& operator<<(ostream& os,const String& s)
+{
+    return os << s.buff;
+}
+
+int main()
+{
+    String s1 = "hello";
+
+    // 자기 자신에게 넣는 것도 문제가 없어야 한다. 
+    s1 = s1;   // 대입 연산자  s1.operator=(s1)
+    cout << s1 << endl;
+}
+```
+- 대입 연산자의 규칙 : 자신과의 대입을 조사해야 한다.
+
+
+
+# 28. STL Container
+- #include <list>
+- standard template library (STL)
+    - list , stack, queue , tree, hash 등
+    - sort, binary search 등 알고리즘
+    - 날짜 , 시간등..
+    - thread / concurrency등
+- STL 역사 : ![](STL.png)
+- container : ![](container.png)
+- 특징 
+    - 멤버 함수 이름이 동일
+    - 제거와 반환이 별도로 분리되어져있음.
+- 컨테이너 생성
+    - list<int> s3(10,3); // 10개를 3으로 초기화
+    - list<int> s4{10,3};  // 2개의 10,3으로 초기화
+- 요소 출력
+    - [] 연산자 : vector , deque는 가능  , list는 안됨
+    - range for 사용 for(auto& n :v)
+    - iterator 사용
+
+
+
+# 29. STL iterator
+- 배열 접근 방법
+    - 배열 연산자
+    - 포인터 사용해서 접근
+- 반복자 (iterator)
+    - 포인터와 유사하게 동작하는 객체로서 반복자를 사용하면 컨테이너의 모든 요소를 순차적으로 접근 할수 있다.
+- vector<int>::iterator vit = v.begin();
+    - auto를 사용하는 것이 편리하다.  auto vit = v.begin();
+- **일반 함수 begin(v) , end(v)를 사용하는 방법도 있다.  <- 모든 container에 쓸수 있다.**
+- 컨테이너의 모든 요소를 열거하는 방법
+    - 배열 연산자 [] 사용
+    - std::begin(v) 사용 , std::size(v) : 모든 container 사용가능
+    - range for 구문 사용 : 모든 container 사용가능
+
+
+
+# 30. STL algorithm
+- 정렬, 검색 , 순열 등
+- auto p = std::find(begin(x) , end(x) , 3);
+    - 검색 실패시 last    : null이 아님
+
+## 알고리즘과 조건자(predicator)
+- <algorithm>  <numeric>
+- _if
+- auto p = find_if (begin(v) , end(v) , foo);
+- find_if (begin(v) , end(v) , [](int a){ return  n %3 ==  0;} ) ;
+- replace(begin(v) , end(v) , 10 , 0);  // 10을 0으로 바꿔라.
+- replace_if(begin(v) , end(v) , [](int n){ return n>= 10;} , 0);  // 10보다 큰 것을 0으로 바꿔라.
+- 모든 요소의 합을 구해서 출력해주세요.
+    - int sum = accumulate(begin(v) , end(v) , 0);  // 합 변수는 0부터 합쳐라.
+- sort(begin(v) , end(v) ) ; // 오름 차순
+- sort(begin(v) , end(v) , [](int a , int b){ return a>b; } ) ; // 내림 차순
+- vector의 모든 요소를 1로 채워서 출력해보세요.
+    - fill(begin(v) , end(v) , 1);
+
+- Charles : 더 살펴 볼 것
+    - algotirhm library , numeric library
+
+
+
+# 31. 예외 처리
+- 함수가 실패하면
+    - throw 키워드를 사용해서 예외를 던진다.
+    - 던져진 예외를 처리하지 않으면 프로그램은 종료된다.
+- 예외를 처리하려면 
+- catch 문을 여러개 만들수 있다.
+    - catch(...) 은 모든 종류의 예외를 잡을수 있다. 
+```cpp
+try
+{
+    int ret = readFile();
+    // ...
+}
+catch (const char* s)
+{
+    cout << s << endl;
+}
+catch (int n)
+{
+    
+}
+catch(...)
+{
+    
+}
+```
+
+## C++ 표준 예외 클래스
+- throw 1;    -> catch(int n){}    이렇게 integer 하나 던져서 뭘 어쩌라구?
+- 예외 전용 클래스를 만들어서 사용하자
+```cpp
+class FileNotFound : public std::exception
+{
+    virtual const char* what() const noexcept
+    {
+        return "file not found";
+    }
+};
+void foo()
+{
+    throw FileNotFound();
+}
+
+try {
+    foo();
+}
+catch(FileNotFound e)
+{
+    
+}
+```
+- ![](exception_class.png)
+
+
+```cpp
+catch(std::exception& e)
+{
+    cout << e.what() << endl;
+}
+```
+- exception 을 catch 할때는 참조로 받는다. 
+
+
+## noexcept
+- 예외가 있는지 없는지도 표시해주면 좋다.
+- C++11 이후 
+    - 예외 없음.
+        - void f() noexcept;
+        - void f() noexcept(true);
+    - 예외 있음
+        - void f();
+        - void f() noexcept(false);
+- std::bad_alloc
+    - new 연산자로 메모리를 할당할때 메모리가 부족한 경우 std::bad_alloc 예외가 던져집니다. 
+- **함수가 예외가 없음을 조사하는 방법**
+    - noexcept(함수 호출식);
+
+
+
+# 32. stream
+## cin
+```cpp
+int main()
+{
+    int n = 0;
+    while(1)
+    {
+        std::cin >> n;  // 'a' 로 입력 . error
+        if(std::cin.fail())
+        {
+            cout << "fali" << endl;
+            // cin의 상태를 reset
+            std::cin.clear();   // 실패를 나타내는 상태 bit를 reset
+            //입력버퍼를 비운다. 
+            // std::cin.ignore();   // default를 1자를 지운다.
+            std::cin.ignore(256,'\n');  // \n을 만날때까지 최대 256을 비우자.
+            continue;
+        }
+        break;
+    }
+    cout << n << endl;
+}
+```
+- cin도 다양한 member 함수를 가지고 있다.
+
+
+```cpp
+std::getline(std::cin, s);  // 문자 입력
+cout << s << endl;
+```
+
+## file stream
+- ostream cout ==> basic_ostream<>
+- typedef basic_ostream<char> ostream
+
+- #include <fstream>
+- 그림 : ![](fstream.png)
+
